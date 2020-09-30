@@ -19,51 +19,113 @@ search: true
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Welcome to DeeMoney API! Your gateway to a financial toolkit.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+# Endpoints
 
-This example API documentation page was created with [Slate](https://github.com/lord/slate). Feel free to edit it and use it as a base for your own API's documentation.
+DeeMoney API is split into 2 main endpoints
+
+
+## Ticket Booth
+
+This endpoint handles all authentication.
+
+```
+https://ticket-booth-staging.api.dee.money
+```
+
+## Grand Central
+
+This endpoint is the transaction engine.
+
+```
+https://grand-central-staging.api.dee.money
+```
+
+<aside class="notice">
+Note that the endpoints provided here are for our UAT / Sandbox environment. Once you have completed your integration you may request us for production endpoints.
+</aside>
 
 # Authentication
 
-> To authorize, use this code:
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
+> You can generate the token by doing something like this:
 
 ```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
+echo -n 'client_id:client_secret' | base64 | sed 's/+/-/g; s/\//_/g'
 ```
 
-```javascript
-const kittn = require('kittn');
+DeeMoney uses JWT standard for authentication token. You will be provided with a `client_id` and a `client_secret`.
 
-let api = kittn.authorize('meowmeowmeow');
+You will need to construct the initial auth token by joining the `client_id` with `client_secret` and encode using base64
+
+Once you have the `auth_token` you can use the following request.
+
+## Ticket Booth Access Token
+
+`POST /auth/app_identity/callback`
+
+In the response header you will be given the access token.
+
+The `expires_at` field will give you the time when the token will expire.
+
+> Request
+
+```shell
+curl -X "POST" "https://ticket-booth-staging.api.dee.money/auth/app_identity/callback" \
+     -H 'Content-Type: application/json' \
+     -d $'{"token": "{{auth_token}}"}' 
 ```
 
-> Make sure to replace `meowmeowmeow` with your API key.
+> Response Header
 
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
+```
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...
+```
 
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
+> Response Body
 
-`Authorization: meowmeowmeow`
+```json
+{
+  "data": {
+    "expires_at": "2020-08-31T09:22:06Z",
+    "id": 12
+  }
+}
+```
 
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
+## Grand Central Access Token
+
+`POST /auth/sessions`
+
+You will need to use the Ticket Booth token to authenticate with Grand Central. You will be responded with a header with another token which is the Grand Central token. Once you have this token you can make transactions, view how much funds in your wallet and much more.
+
+The `expires_at` field will give you the time when the token will expire.
+
+> Request
+
+```shell
+curl -X "POST" "https://grand-central-staging.api.dee.money/auth/sessions" \
+     -H 'Content-Type: application/json' \
+     -d $'{"token": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9..."}'
+```
+
+> Response Header
+
+```
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...
+```
+
+> Response Body
+
+```json
+{
+  "data": {
+    "expires_at": "2020-08-31T08:27:34Z",
+    "id": "4584be75-f9c4-4218-b057-09066a44a54a"
+  }
+}
+```
+
 
 # Kittens
 
