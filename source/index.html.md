@@ -126,8 +126,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...
 }
 ```
 
-
-# Kittens
+# Kittenss
 
 ## Get All Kittens
 
